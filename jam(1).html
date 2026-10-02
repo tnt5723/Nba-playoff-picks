@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Standings Picks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<script>
+  const _s = new URLSearchParams(location.search).get("season");
+  document.write(`<script src="picks${_s ? "-" + _s.replace(/\D/g,"") : ""}.js"><\/script>`);
+</script>
+<style>
+:root{
+  --blue1:#2457D6; --blue2:#0C2280; --blue3:#061456; --cyan:#5FE0FF; --cyanD:#1C8FC4;
+  --gold1:#FFF6A0; --gold2:#FFC21A; --gold3:#F06A00; --red1:#E0283F; --red2:#7A0718;
+  --green:#3BE36C; --white:#F4F7FF; --dim:#7E8FD6; --black:#000;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:#000}
+body{margin:0;background:#000;color:var(--white);font:16px/1.35 Silkscreen,"Courier New",monospace;
+  image-rendering:pixelated}
+/* CRT scanlines */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 12px 60px}
+
+/* Bevel panel: the core Jam device */
+.bevel{background:linear-gradient(180deg,var(--blue1),var(--blue2) 60%,var(--blue3));
+  border:4px solid var(--cyan);outline:3px solid var(--blue3);
+  box-shadow:inset 3px 3px 0 rgba(255,255,255,.25),inset -3px -3px 0 rgba(0,0,0,.45)}
+.bevel.red{background:linear-gradient(180deg,var(--red1),var(--red2));border-color:#FF8A9A}
+.gold{font-family:"Pixelify Sans",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  background:linear-gradient(180deg,var(--gold1) 0%,var(--gold2) 45%,var(--gold3) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(2px 2px 0 #000) drop-shadow(-1px -1px 0 #000)}
+
+/* Title banner */
+.banner{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:6px}
+.banner::before,.banner::after{content:"";flex:1;height:10px;
+  background:repeating-linear-gradient(90deg,var(--cyan) 0 6px,transparent 6px 10px);transform:skewX(-30deg)}
+.banner h1{margin:0;font-size:clamp(1.4rem,4.6vw,2.6rem);white-space:nowrap}
+.subbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:6px 4px 14px;color:var(--cyan);font-size:.8rem}
+.btn{font:700 .9rem Silkscreen;color:#000;background:linear-gradient(180deg,var(--gold1),var(--gold2) 50%,var(--gold3));
+  border:3px solid #000;box-shadow:inset 2px 2px 0 rgba(255,255,255,.6),3px 3px 0 var(--cyanD);padding:6px 12px;cursor:pointer;text-transform:uppercase}
+.btn:active{transform:translate(2px,2px);box-shadow:inset 2px 2px 0 rgba(255,255,255,.6),1px 1px 0 var(--cyanD)}
+.btn:focus-visible,summary:focus-visible{outline:3px solid var(--gold1);outline-offset:3px}
+
+/* Scoreboard */
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;margin:22px 0 14px}
+.score .team{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px}
+.score .nm{font:700 clamp(1rem,3vw,1.5rem) "Pixelify Sans";text-transform:uppercase}
+.score .pts{font:700 clamp(1.8rem,6vw,3rem) "Pixelify Sans";color:var(--gold2);text-shadow:3px 3px 0 #000}
+.score .clock{padding:6px 14px;text-align:center;background:#000;border:4px solid var(--cyan);border-left:0;border-right:0;
+  display:flex;flex-direction:column;justify-content:center}
+.score .q{font:700 1.05rem "Pixelify Sans";color:var(--gold2)}
+.score .gl{font-size:.7rem;color:var(--green)}
+
+/* Player select */
+.select{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pcard{padding:8px;display:flex;flex-direction:column;gap:6px;position:relative}
+.portrait{aspect-ratio:4/3;border:3px solid #000;display:grid;place-items:center;position:relative;overflow:hidden;
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.15)}
+.portrait::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px)}
+.portrait .ini{font:700 clamp(3rem,10vw,5.5rem) "Pixelify Sans";color:var(--white);text-shadow:4px 4px 0 #000;position:relative;z-index:1}
+.portrait .logos{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:4%;width:100%}
+.portrait .logos img{width:42%;max-width:130px;aspect-ratio:1;object-fit:contain;filter:drop-shadow(3px 3px 0 #000) drop-shadow(-1px -1px 0 #000)}
+.portrait .ini{display:none}
+.portrait.nologo .logos{display:none}.portrait.nologo .ini{display:block}
+.portrait .logo{position:absolute;right:6px;bottom:4px;font:700 .8rem Silkscreen;color:rgba(255,255,255,.75);z-index:1}
+.badge{position:absolute;top:14px;left:14px;z-index:2;width:30px;height:30px;display:grid;place-items:center;
+  background:var(--blue3);border:3px solid var(--cyan);font:700 1rem "Pixelify Sans";color:var(--gold2)}
+.fire{position:absolute;top:12px;right:12px;z-index:2;font-size:1rem;transform:rotate(-6deg)}
+@media (prefers-reduced-motion:no-preference){.fire{animation:blink 1s steps(2,end) infinite}
+  @keyframes blink{50%{opacity:.25}}}
+.plate{font:700 1.15rem "Pixelify Sans";text-transform:uppercase;text-align:center;background:var(--blue3);border:2px solid var(--cyanD);padding:2px}
+.stats{display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;align-items:center;font-size:.72rem}
+.stats .b{height:9px;background:#05103F;border:1px solid #000;display:flex}
+.stats .b i{display:block;height:100%;background:linear-gradient(180deg,#9CFFB6,var(--green) 50%,#14862F)}
+.stats em{font-style:normal;color:var(--gold2)}
+.challenger{display:grid;place-items:center;text-align:center;padding:14px 10px;gap:8px}
+.challenger .gold{font-size:clamp(1.2rem,3vw,1.8rem);line-height:1.1}
+.challenger p{margin:0;font-size:.75rem}
+.challenger ol{margin:0;padding:0;list-style:none;font-size:.8rem}
+
+/* Team select = standings */
+h2{margin:26px 0 8px;font-size:1.4rem}
+h2.first{margin-top:4px}
+.teamselect{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:0}
+.vert{display:flex;flex-direction:column;justify-content:center;padding:0 8px;font:700 2rem/1 "Pixelify Sans";text-align:center}
+.conf{padding:10px 12px;display:grid;grid-template-rows:repeat(8,auto);grid-auto-flow:column;grid-auto-columns:1fr;column-gap:14px;min-width:0}
+.conf.w{border-right:2px solid var(--cyanD)}
+.tm{min-width:0;white-space:nowrap;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:2px 4px;font:500 1rem "Pixelify Sans";text-transform:uppercase;color:var(--gold2);text-shadow:2px 2px 0 #000}
+.tm .tn{overflow:hidden;text-overflow:ellipsis}
+.tm .rec{flex:none;font:400 .7rem Silkscreen;color:var(--cyan);align-self:center}
+.tm.out{color:var(--dim)}
+.tm.cursor{background:var(--cyan);color:#000;text-shadow:none}.tm.cursor .rec{color:var(--blue3)}
+.tm.cut{border-bottom:2px dashed var(--gold2)}
+.tm .s{display:inline-block;width:1.6em;color:var(--white)}
+.tm.cursor .s{color:#000}
+
+/* Final game stats = leaderboard */
+.stat{padding:6px}
+.stat details{border-bottom:2px solid var(--blue3)}
+.stat details:last-child{border-bottom:0}
+.stat summary{list-style:none;display:grid;grid-template-columns:2.4rem 1fr repeat(3,3.6rem) 4.4rem;align-items:center;gap:6px;padding:6px 4px;cursor:pointer}
+.stat summary::-webkit-details-marker{display:none}
+.stat .hd{display:grid;grid-template-columns:2.4rem 1fr repeat(3,3.6rem) 4.4rem;gap:6px;padding:4px;font-size:.7rem;color:var(--cyan)}
+.rk{font:700 1.2rem "Pixelify Sans";color:var(--gold2);text-align:center;background:var(--blue3);border:2px solid var(--cyanD)}
+.nm2{font:700 1.15rem "Pixelify Sans";text-transform:uppercase}
+.tb{display:block;font-size:.62rem;color:var(--dim)}
+.n{text-align:center;font-size:.9rem}
+.tot{text-align:right;font:700 1.6rem "Pixelify Sans";color:var(--gold2);text-shadow:2px 2px 0 #000}
+.c{text-align:center}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:4px 6px 12px 46px}
+table{width:100%;border-collapse:collapse;font-size:.75rem}
+th{color:var(--cyan);text-align:left;font-weight:400;padding:3px 4px;border-bottom:2px solid var(--cyanD)}
+td{padding:3px 4px;border-bottom:1px solid rgba(95,224,255,.15)}
+.hit{color:var(--green)} .zero{color:var(--dim)} .bad{color:#FF8A9A}
+.ttl{font:700 .95rem "Pixelify Sans";color:var(--gold2);margin:4px 0}
+
+/* Tiebreaker + high scores */
+.duo{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-top:26px}
+.duo h2{margin:0 0 8px;font-size:1.2rem}
+.box{padding:10px}
+.note{font-size:.7rem;color:var(--cyan);margin:0 0 8px}
+.hs td{font:700 1.05rem "Pixelify Sans";padding:4px 6px}
+.hs td:first-child{color:var(--cyan)}
+.hs td:last-child{color:var(--gold2);text-align:right}
+.empty{padding:16px;font-size:.8rem;color:var(--cyan)}
+code{color:var(--gold2);font-family:inherit}
+footer{margin-top:26px;font-size:.65rem;color:var(--dim);text-align:center}
+
+@media (max-width:760px){
+  .select{grid-template-columns:1fr 1fr}.challenger{grid-column:1/-1}
+  .teamselect{grid-template-columns:1fr}.vert{flex-direction:row;justify-content:flex-start;gap:4px;padding:10px 12px 2px;font-size:1.4rem}.vert br{display:none}
+  .conf{grid-template-rows:none;grid-auto-flow:row;padding:4px 10px 10px}.tm{font-size:1.05rem}
+  .vert.e{order:3}.conf.e{order:4}.conf.w{border-right:0}
+  .stat summary,.stat .hd{grid-template-columns:2rem 1fr 2.6rem 2.6rem 3.6rem}
+  .stat .xcol{display:none}
+  .portrait .logo{display:none}
+  .tb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .picks,.duo{grid-template-columns:1fr}.picks{padding-left:6px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner bevel"><h1 class="gold" id="title">Standings Picks</h1></div>
+  <div class="subbar"><span id="updated">Loading…</span><button class="btn" id="refresh" type="button">Refresh</button></div>
+
+  <h2 class="gold first">Final game stats</h2>
+  <p class="note" id="rules"></p>
+  <div class="stat bevel" id="board"></div>
+
+  <div class="score" id="score" hidden>
+    <div class="team bevel"><span class="nm" id="s1n"></span><span class="pts" id="s1p"></span></div>
+    <div class="clock"><span class="q" id="qtr"></span><span class="gl" id="gl"></span></div>
+    <div class="team bevel red"><span class="pts" id="s2p"></span><span class="nm" id="s2n"></span></div>
+  </div>
+
+  <div class="select" id="select"></div>
+
+  <h2 class="gold">Team select</h2>
+  <div class="teamselect bevel">
+    <div class="vert gold" aria-hidden="true">W<br>E<br>S<br>T</div>
+    <div class="conf w" id="west" aria-label="Western Conference"></div>
+    <div class="conf e" id="east" aria-label="Eastern Conference"></div>
+    <div class="vert gold e" aria-hidden="true">E<br>A<br>S<br>T</div>
+  </div>
+
+
+  <div class="duo">
+    <section id="tbWrap"><h2 class="gold">Tiebreaker</h2>
+      <div class="box bevel red"><p class="note" style="color:#FFD6DC">Ties go to whoever picked the league's worst team, then whoever's win total is closest to that team's actual wins.</p><div id="basement"></div></div></section>
+    <section><h2 class="gold">High scores</h2><div class="box bevel"><div id="hist"></div></div></section>
+  </div>
+  <footer>Standings via ESPN, ranked by record. Play-in results ignored.</footer>
+</div>
+
+<script>
+(() => {
+const C = window.CONTEST, MAXC = C.pointsPerSlot*8, MAX = MAXC*2;
+const DEMO = new URLSearchParams(location.search).has("demo");
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const COLORS={ATL:"#C8102E",BKN:"#555",BOS:"#007A33",CHA:"#1D1160",CHI:"#CE1141",CLE:"#860038",DAL:"#00538C",DEN:"#0E2240",DET:"#C8102E",GS:"#1D428A",HOU:"#CE1141",IND:"#002D62",LAC:"#C8102E",LAL:"#552583",MEM:"#5D76A9",MIA:"#98002E",MIL:"#00471B",MIN:"#236192",NO:"#0C2340",NY:"#F58426",OKC:"#007AC1",ORL:"#0077C0",PHI:"#006BB6",PHX:"#E56020",POR:"#E03A3E",SAC:"#5A2D81",SA:"#8A8D8F",TOR:"#CE1141",UTAH:"#002B5C",WSH:"#002B5C"};
+const pct = t => (t.w+t.l ? t.w/(t.w+t.l) : 0);
+const yy = String(C.season).slice(2);
+let S = null, demoPlayers = null;
+
+$("title").textContent = `Standings Picks '${yy}`; document.title = `Standings Picks '${yy}`;
+$("rules").textContent = `Exact seed ${C.pointsPerSlot} pts, one off ${C.pointsPerSlot-1}, and so on. Max ${MAX}. ` +
+  (C.outsideTop8==="top8" ? "Teams outside the top 8 score 0. " : "Teams that miss the top 8 still score by distance. ") + "Tap a player for picks.";
+$("hist").innerHTML = `<table class="hs"><tbody>${C.history.map(h=>`<tr><td>${esc(h.season)}</td><td>${esc(h.name).toUpperCase()}</td><td>${h.score}</td></tr>`).join("")}</tbody></table>`;
+
+async function getStandings(){
+  try { const r = await fetch(`/api/standings?season=${C.season}`, {cache:"no-store"}); if(r.ok) return await r.json(); } catch(e){}
+  const r = await fetch(`https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?season=${C.season}&seasontype=2`);
+  if(!r.ok) throw new Error("ESPN "+r.status);
+  const d = await r.json(), out = {};
+  for(const c of d.children) out[c.abbreviation.toLowerCase()] = c.standings.entries.map(e=>{
+    const s = Object.fromEntries(e.stats.map(x=>[x.name,x.displayValue??x.value]));
+    return {abbr:e.team.abbreviation,name:e.team.displayName,short:e.team.shortDisplayName,seed:+s.playoffSeed,w:+s.wins,l:+s.losses,gb:s.gamesBehind,streak:s.streak};
+  }).sort((a,b)=>pct(b)-pct(a)||(a.seed||99)-(b.seed||99)).map((t,i)=>({...t,seed:i+1}));
+  return out;
+}
+
+async function load(){
+  $("updated").textContent = "Loading…";
+  try{
+    S = await getStandings();
+    $("updated").textContent = "Updated " + new Date().toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+    render();
+  }catch(err){ $("updated").innerHTML = `<span class="bad">Standings unavailable (${esc(err.message)}). Retrying in 5 min.</span>`; }
+}
+
+function players(){
+  if(C.players.length || !DEMO) return C.players;
+  if(!demoPlayers){
+    const rnd = k => S[k].map(t=>t.abbr).sort(()=>Math.random()-.5).slice(0,8);
+    const all = [...S.west,...S.east].map(t=>t.abbr);
+    demoPlayers = ["Taylor","Kyle","Luis","Gen","Adam","Luke","Player 7","Player 8"].map(n=>({name:n,west:rnd("west"),east:rnd("east"),
+      worst:{team:all[Math.floor(Math.random()*all.length)],wins:15+Math.floor(Math.random()*10)}}));
+  }
+  return demoPlayers;
+}
+
+function score(picks, conf){
+  const seedOf = Object.fromEntries(S[conf].map(t=>[t.abbr,t.seed]));
+  return picks.map((abbr,i)=>{
+    const slot=i+1, actual=seedOf[abbr];
+    let pts=0;
+    if(actual!=null && !(C.outsideTop8==="top8" && actual>8)) pts=Math.max(0,C.pointsPerSlot-Math.abs(slot-actual));
+    return {slot,abbr,actual,pts,bad:actual==null};
+  });
+}
+const pickTable = rows => `<table><thead><tr><th class="c">Pk</th><th>Team</th><th class="c">Now</th><th class="c">Pts</th></tr></thead><tbody>${
+  rows.map(r=>`<tr><td class="c">${r.slot}</td><td>${esc(r.abbr)}${r.bad?' <span class="bad">?</span>':''}</td><td class="c">${r.actual??"–"}</td><td class="c ${r.pts===C.pointsPerSlot?'hit':r.pts===0?'zero':''}">${r.pts}</td></tr>`).join("")}</tbody></table>`;
+const initials = n => n.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const bar = (v,max) => `<span class="b"><i style="width:${Math.max(0,Math.min(1,v/max))*100}%"></i></span>`;
+
+function render(){
+  if(!S) return;
+  const all = [...S.west,...S.east], byAbbr = Object.fromEntries(all.map(t=>[t.abbr,t]));
+  const worst = [...all].sort((a,b)=>pct(a)-pct(b) || a.w-b.w)[0];
+  const list = players().map(p=>{
+    const w=score(p.west,"west"), e=score(p.east,"east");
+    const ws=w.reduce((a,r)=>a+r.pts,0), es=e.reduce((a,r)=>a+r.pts,0);
+    return {...p,w,e,ws,es,total:ws+es,exact:[...w,...e].filter(r=>r.pts===C.pointsPerSlot).length,
+      tbHit:p.worst&&p.worst.team===worst.abbr?1:0, tbOff:p.worst?Math.abs(p.worst.wins-worst.w):999};
+  }).sort((a,b)=>b.total-a.total||b.tbHit-a.tbHit||a.tbOff-b.tbOff);
+  let rank=0, prevKey=null;
+  list.forEach((p,i)=>{const k=`${p.total}|${p.tbHit}|${p.tbOff}`; if(k!==prevKey){rank=i+1;prevKey=k;} p.rank=rank;});
+
+  // Scoreboard: leader vs runner-up, season "quarter" by games played
+  const gp = all.reduce((a,t)=>a+t.w+t.l,0)/all.length;
+  const q = gp===0 ? "Pre-game" : gp>=82 ? "Final" : ["1st","2nd","3rd","4th"][Math.min(3,Math.floor(gp/20.5))] + " qtr";
+  $("score").hidden = list.length<2;
+  if(list.length>=2){
+    $("s1n").textContent=list[0].name; $("s1p").textContent=list[0].total;
+    $("s2n").textContent=list[1].name; $("s2p").textContent=list[1].total;
+    $("qtr").textContent=q; $("gl").textContent = gp>=82 ? "Season over" : `${Math.round(82-gp)} games left`;
+  }
+
+  // Player select: top 2 + challenger panel
+  const card = (p,i) => `<div class="pcard bevel">
+      <span class="badge">${p.rank}</span>${i===0?'<span class="fire gold">On fire!</span>':''}
+      <div class="portrait" style="background:linear-gradient(135deg,${COLORS[p.west[0]]||'#333'},${COLORS[p.east[0]]||'#111'})">
+        <span class="logos">${[p.west[0],p.east[0]].map(ab=>`<img src="https://a.espncdn.com/i/teamlogos/nba/500/${esc(ab.toLowerCase())}.png" alt="${esc(ab)}" onerror="this.closest('.portrait').classList.add('nologo')">`).join("")}</span>
+        <span class="ini">${esc(initials(p.name))}</span><span class="logo">#1 picks: ${esc(p.west[0])} / ${esc(p.east[0])}</span></div>
+      <div class="plate"><span class="gold">${esc(p.name)}</span></div>
+      <div class="stats">
+        <span>West</span>${bar(p.ws,MAXC)}<em>${p.ws}</em>
+        <span>East</span>${bar(p.es,MAXC)}<em>${p.es}</em>
+        <span>Exact</span>${bar(p.exact,8)}<em>${p.exact}</em>
+        <span>Tiebrk</span>${bar(p.tbHit?10-Math.min(p.tbOff,9):Math.max(0,5-p.tbOff),10)}<em>${p.worst?(p.tbHit?"✓":"✗")+p.tbOff:"–"}</em>
+      </div></div>`;
+  const chasers = list.slice(2).filter(p=>list[1].total-p.total<=8).slice(0,4);
+  $("select").innerHTML = !list.length ? "" : list.slice(0,2).map(card).join("") + `
+    <div class="pcard bevel red challenger">
+      <div class="gold">Challenger<br>needed!</div>
+      ${chasers.length ? `<p>Within 8 of 2nd:</p><ol>${chasers.map(p=>`<li>${esc(p.name).toUpperCase()} ${p.total}</li>`).join("")}</ol>`
+                       : `<p>Nobody within 8 of 2nd place.</p>`}
+    </div>`;
+
+  // Team select = standings
+  const ps = players();
+  for(const conf of ["west","east"]){
+    $(conf).innerHTML = S[conf].map(t=>{
+      const nick = ({"Trail Blazers":"Blazers","Timberwolves":"Wolves"})[t.short] || t.short || t.name.split(" ").pop();
+      const n = ps.filter(p=>p[conf].includes(t.abbr)).length;
+      return `<div class="tm ${t.seed===1?'cursor':''} ${t.seed>8?'out':''} ${t.seed===8?'cut':''}" title="${esc(t.name)}${ps.length?`: picked by ${n} of ${ps.length}`:''}">
+        <span class="tn"><span class="s">${t.seed}</span>${esc(nick)}</span><span class="rec">${t.w}-${t.l}</span></div>`;
+    }).join("");
+  }
+
+  // Final game stats = leaderboard
+  $("board").innerHTML = !list.length
+    ? `<div class="empty">No picks yet. Add everyone to <code>picks.js</code>, or add <code>?demo</code> to the URL to preview.</div>`
+    : `<div class="hd"><span>#</span><span>Player</span><span class="c">West</span><span class="c">East</span><span class="c xcol">Exact</span><span style="text-align:right">Pts</span></div>` +
+      list.map(p=>`<details><summary>
+        <span class="rk">${p.rank}</span>
+        <span><span class="nm2">${esc(p.name)}</span>${p.worst?`<span class="tb">TB: ${p.tbHit?"✓ team":"✗ team"}, off ${p.tbOff}</span>`:""}</span>
+        <span class="n">${p.ws}</span><span class="n">${p.es}</span><span class="n xcol">${p.exact}</span>
+        <span class="tot">${p.total}</span></summary>
+        <div class="picks"><div><div class="ttl">West</div>${pickTable(p.w)}</div><div><div class="ttl">East</div>${pickTable(p.e)}</div></div>
+      </details>`).join("");
+
+  // Tiebreaker table
+  const bets = ps.filter(p=>p.worst);
+  $("tbWrap").hidden = !bets.length;
+  $("basement").innerHTML = `<table><thead><tr><th>Player</th><th>Pick</th><th class="c">Guess</th><th class="c">Now</th><th class="c">Off</th></tr></thead><tbody>${
+    bets.map(p=>{const t=byAbbr[p.worst.team], hit=t&&t.abbr===worst.abbr;
+      return `<tr><td>${esc(p.name)}</td><td class="${hit?'hit':''}">${t?esc(t.short||t.abbr):`<span class="bad">${esc(p.worst.team)}?</span>`}</td><td class="c">${p.worst.wins}</td><td class="c">${t?`${t.w}-${t.l}`:"–"}</td><td class="c">${Math.abs(p.worst.wins-worst.w)}</td></tr>`;}).join("")
+  }</tbody></table><p class="note" style="margin:8px 0 0;color:#FFD6DC">Current worst: ${esc(worst.name)} (${worst.w}-${worst.l})</p>`;
+}
+
+$("refresh").addEventListener("click", load);
+load(); setInterval(load, 5*60*1000);
+})();
+</script>
+</body>
+</html>
