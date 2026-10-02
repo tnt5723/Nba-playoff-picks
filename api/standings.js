@@ -15,8 +15,8 @@ export default async function handler(req, res) {
         return { abbr: e.team.abbreviation, name: e.team.displayName, short: e.team.shortDisplayName,
                  color: e.team.color ? '#' + e.team.color : null,
                  seed: +s.playoffSeed, w: +s.wins, l: +s.losses, gb: s.gamesBehind, streak: s.streak };
-      }).sort((a, b) => pct(b) - pct(a) || (a.seed || 99) - (b.seed || 99))
-        .map((t, i) => ({ ...t, seed: i + 1 })); // ranked by record; ESPN seed only breaks ties (ignores play-in)
+      }).sort((a, b) => (a.seed || 99) - (b.seed || 99) || pct(b) - pct(a))
+        .map((t, i) => ({ ...t, seed: i + 1 })); // ESPN playoff seeds (play-in decides 7/8); record only used before seeds exist
     }
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
     res.status(200).json(out);
