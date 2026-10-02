@@ -103,8 +103,7 @@ tr.cut td{border-bottom:3px dashed var(--gold)}
 .avg small{color:var(--muted)}
 
 .empty{border:3px dashed var(--muted);padding:22px;color:var(--muted);font-style:italic}
-.hist{display:flex;flex-wrap:wrap;gap:30px;color:var(--muted)}
-.hist b{display:block;font:1.1rem Bungee;color:var(--cream)}
+.champs{max-width:460px}
 footer{margin-top:40px;color:#7C6BB0;font-size:.85rem;font-style:italic}
 code{font-style:normal;color:var(--gold)}
 @media (max-width:720px){.confs,.detail{grid-template-columns:1fr}.select{grid-template-columns:1fr}}
@@ -139,8 +138,8 @@ code{font-style:normal;color:var(--gold)}
     <div class="panel"><div id="basement"></div></div>
   </section>
 
-  <h2>Past champs' scores</h2>
-  <div class="hist" id="hist"></div>
+  <h2>Past champs</h2>
+  <div class="panel champs"><div id="hist"></div></div>
   <footer>Standings via ESPN, refreshed every 5 minutes. Ranked by record (play-in results ignored); ties use the NBA tiebreak order.</footer>
 </div>
 <div class="stripe" aria-hidden="true"></div>
@@ -158,7 +157,8 @@ $("sub").textContent = `${C.season-1}-${String(C.season).slice(2)} season, live 
 $("rules").textContent = `Nail the seed for ${C.pointsPerSlot}, one spot off for ${C.pointsPerSlot-1}, and so on down. ` +
   (C.outsideTop8==="top8" ? "Miss the top 8 entirely and it's a brick: 0. " : "Teams sliding to 9th or worse still score by distance. ") +
   `Perfect card is ${MAX}. Tap a name to see the picks.`;
-$("hist").innerHTML = C.history.map(h=>`<div><b>${esc(h.season)}</b>${h.scores.join(", ")}</div>`).join("");
+$("hist").innerHTML = `<table><thead><tr><th>Season</th><th>Champ</th><th class="c">Score</th></tr></thead><tbody>${
+  C.history.map(h=>`<tr><td>${esc(h.season)}</td><td class="seed">${esc(h.name)}</td><td class="c hit">${h.score}</td></tr>`).join("")}</tbody></table>`;
 
 const pct = t => (t.w+t.l ? t.w/(t.w+t.l) : 0);
 async function getStandings(){
