@@ -10,8 +10,10 @@ window.CONTEST = {
   pointsPerSlot: 8,
   outsideTop8: "full",          // "full" = 9th-15th still scores by distance; "top8" = scores 0
   history: [
-    { season: "2025-26", scores: [83, 78, 78, 78, 77] },
-    { season: "2024-25", scores: [99, 96, 91, 86, 82, 75] }
+    { season: "2025-26", name: "Adam", score: 83 },
+    { season: "2024-25", name: "Gen",  score: 91 },
+    { season: "2023-24", name: "Kyle", score: 86 },
+    { season: "2022-23", name: "Luis", score: 99 }
   ],
   players: [
     // { name: "Taylor", head: "heads/taylor.jpg",

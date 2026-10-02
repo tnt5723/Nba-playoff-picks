@@ -1,7 +1,11 @@
 // 2025-26 picks, used as a test run: open the site with ?season=2026
 window.CONTEST = {
   title: "Standings Picks", season: 2026, pointsPerSlot: 8, outsideTop8: "full",
-  history: [{ season: "2024-25", scores: [99, 96, 91, 86, 82, 75] }],
+  history: [
+    { season: "2024-25", name: "Gen",  score: 91 },
+    { season: "2023-24", name: "Kyle", score: 86 },
+    { season: "2022-23", name: "Luis", score: 99 }
+  ],
   players: [
     { name: "Kyle",   west: ["OKC","DEN","HOU","LAC","GS","MIN","LAL","SA"], east: ["CLE","NY","ORL","MIL","ATL","DET","BOS","PHI"], worst: { team: "WSH", wins: 19 } },
     { name: "Luis",   west: ["OKC","DEN","LAC","GS","MIN","LAL","HOU","SA"], east: ["CLE","NY","ATL","ORL","DET","MIL","PHI","IND"], worst: { team: "UTAH", wins: 19 } },
